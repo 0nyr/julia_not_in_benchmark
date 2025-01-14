@@ -48,6 +48,19 @@ function method_5(node, route)
     return true
 end
 
+function method_6(node, route)
+    return sum(route .== node) == 0
+end
+
+function method_7(node, route)
+    sum = 0
+    @simd for r in route
+            sum += r == node
+    end
+    return sum == 0
+end
+
+
 function test_is_in(method)
     node = 1
     route = [i for i in 1:100]
@@ -60,11 +73,6 @@ function test_is_not_in(method)
     route = [i for i in 1:100]
     res = method(node, route)
     @assert res == true
-end
-
-for method in [method_1, method_2, method_3, method_4, method_5]
-    test_is_in(method)
-    test_is_not_in(method)
 end
 
 function testing(routes, nodes, method)
@@ -81,7 +89,14 @@ METHODS::Vector{Tuple{String, Function}} = [
     ("all", method_3),
     ("for", method_4),
     ("sfor", method_5),
+    ("sum", method_6),
+    ("ssum", method_7),
 ]
+
+for method in [m[2] for m in METHODS]
+    test_is_in(method)
+    test_is_not_in(method)
+end
 
 # Benchmarking function
 function benchmark_methods(
@@ -128,7 +143,6 @@ nb_methods = length(METHODS)
 categories = Vector{Int}(undef, ITERATIONS*nb_methods)
 all_values = Vector{Float64}(undef, ITERATIONS*nb_methods)
 for i in 1:nb_methods
-    print("Method $i: $(METHODS[i][1]) ")
     categories[(i-1)*ITERATIONS+1:i*ITERATIONS] .= i
     all_values[(i-1)*ITERATIONS+1:i*ITERATIONS] .= results[i, :]
 end
